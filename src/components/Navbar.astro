@@ -1,0 +1,143 @@
+---
+interface Props {
+  activePage?: 'home' | 'about'
+}
+const { activePage = 'home' } = Astro.props
+---
+
+<header class='navbar'>
+  <a href='/' class='navbar__brand'>
+    <svg
+      width='20'
+      height='20'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      stroke-width='2'
+      stroke-linecap='round'
+      stroke-linejoin='round'
+      aria-hidden='true'>
+      <path d='m8 3 4 8 5-5 5 15H2L8 3z'></path>
+    </svg>
+    <span class='navbar__name'>Escalistas</span>
+  </a>
+
+  <nav class='navbar__nav'>
+    <a
+      href='/'
+      class:list={[
+        'navbar__link',
+        { 'navbar__link--active': activePage === 'home' }
+      ]}>Rutas</a
+    >
+    <a
+      href='https://loc.wiki/u/20112185?wa=uc'
+      class='navbar__rss'
+      aria-label='Feed RSS'>
+      <svg
+        width='13'
+        height='13'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'>
+        <path d='M4 11a9 9 0 0 1 9 9'></path><path d='M4 4a16 16 0 0 1 16 16'
+        ></path><circle cx='5' cy='19' r='1'></circle>
+      </svg>
+      Wikiloc
+    </a>
+  </nav>
+</header>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 48px;
+    background: var(--card);
+    box-shadow: 0 2px 12px #00000008;
+  }
+
+  .navbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-1);
+  }
+  .navbar__brand svg {
+    color: var(--sage);
+    flex-shrink: 0;
+  }
+  .navbar__name {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .navbar__tagline {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  .navbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .navbar__link {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .navbar__link:hover {
+    background: var(--bg);
+    color: var(--text-1);
+  }
+  .navbar__link--active {
+    background: color-mix(in srgb, var(--sage) 15%, transparent);
+    color: var(--sage);
+    font-weight: 600;
+  }
+
+  .navbar__rss {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 8px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    transition: color 0.15s;
+  }
+  .navbar__rss:hover {
+    color: var(--sage);
+  }
+  .navbar__rss svg {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    .navbar {
+      padding: 0 20px;
+    }
+    .navbar__tagline {
+      display: none;
+    }
+  }
+</style>

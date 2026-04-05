@@ -1,0 +1,794 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Navbar from '../../components/Navbar.astro'
+import ElevationChart from '../../components/ElevationChart.astro'
+import { rutas, getRutaBySlug, difficultyColor } from '../../data/rutas'
+import type { Ruta } from '../../data/rutas'
+import { marked } from 'marked'
+
+export function getStaticPaths() {
+  return rutas.map((r) => ({ params: { slug: r.slug } }))
+}
+
+const { slug } = Astro.params
+const ruta = getRutaBySlug(slug!) as Ruta
+const color = difficultyColor[ruta.difficulty]
+const dateFormatted = new Date(ruta.date).toLocaleDateString('es-ES', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+})
+
+const metrics = [
+  { label: 'Distancia', value: `${ruta.distance_km} km`, color: 'text-1' },
+  {
+    label: 'Desnivel +',
+    value: `${ruta.elevation_gain.toLocaleString('es-ES')} m`,
+    color: 'sage'
+  },
+  {
+    label: 'Desnivel −',
+    value: `${ruta.elevation_loss.toLocaleString('es-ES')} m`,
+    color: 'terra'
+  },
+  {
+    label: 'Alt. Máxima',
+    value: `${ruta.max_elevation.toLocaleString('es-ES')} m`,
+    color: 'blue'
+  },
+  {
+    label: 'Alt. Mínima',
+    value: `${ruta.min_elevation.toLocaleString('es-ES')} m`,
+    color: 'text-1'
+  },
+  {
+    label: 'Pendiente Máx.',
+    value: ruta.max_slope != null ? `${ruta.max_slope}°` : '—',
+    color: 'terra'
+  },
+  {
+    label: 'Pendiente Media',
+    value: ruta.mean_slope != null ? `${ruta.mean_slope}°` : '—',
+    color: 'text-1'
+  },
+  { label: '% sobre 30°', value: `${ruta.pct_over_30}%`, color: 'terra' },
+  { label: '% sobre 40°', value: `${ruta.pct_over_40}%`, color: 'terra' },
+  { label: '% sobre 45°', value: `${ruta.pct_over_45}%`, color: 'terra' },
+  { label: 'Orientación Media', value: ruta.mean_aspect, color: 'text-1' },
+  {
+    label: 'Rugosidad Media',
+    value: ruta.rugosity_mean.toFixed(2),
+    color: 'text-1'
+  },
+  { label: '% Expuesto', value: `${ruta.exposed_pct}%`, color: 'lavender' }
+]
+
+const description = marked(ruta.description)
+---
+
+<Layout title={ruta.title} description={ruta.description.slice(0, 155)}>
+  <Navbar />
+
+  <!-- Hero -->
+  <section class='hero'>
+    <div class='hero__bg' style={`background-image: url('${ruta.image}')`}>
+    </div>
+    <div class='hero__overlay'></div>
+    <div class='hero__content'>
+      <nav class='hero__breadcrumb' aria-label='breadcrumb'>
+        <a href='/'>Rutas</a>
+        <span>/</span>
+        <span>{ruta.zone}</span>
+        <span>/</span>
+        <span>{ruta.title}</span>
+      </nav>
+      <h1 class='hero__title'>{ruta.title}</h1>
+      <div class='hero__row'>
+        <span
+          class='hero__badge'
+          style={`background: ${color.bg}; color: ${color.text};`}>
+          {ruta.difficulty.charAt(0).toUpperCase() + ruta.difficulty.slice(1)}
+        </span>
+        <span class='hero__stat'>
+          <svg
+            width='13'
+            height='13'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            stroke-width='2'
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            aria-hidden='true'
+            ><path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'
+            ></path><circle cx='12' cy='10' r='3'></circle></svg
+          >
+          {ruta.zone}
+        </span>
+        <span class='hero__stat'>
+          <svg
+            width='13'
+            height='13'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            stroke-width='2'
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            aria-hidden='true'
+            ><rect width='18' height='18' x='3' y='4' rx='2' ry='2'></rect><line
+              x1='16'
+              x2='16'
+              y1='2'
+              y2='6'></line><line x1='8' x2='8' y1='2' y2='6'></line><line
+              x1='3'
+              x2='21'
+              y1='10'
+              y2='10'></line></svg
+          >
+          {dateFormatted}
+        </span>
+      </div>
+      {
+        ruta.categories.length > 0 && (
+          <div class='hero__tags'>
+            {ruta.categories.map((cat) => (
+              <span class='hero__tag'>{cat}</span>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- Stats bar -->
+  <div class='statsbar'>
+    <div class='statsbar__item'>
+      <svg
+        width='18'
+        height='18'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'
+        style='color:var(--sage)'
+        ><path d='M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14l4 4-4 4'
+        ></path></svg
+      >
+      <div>
+        <span class='statsbar__val'>{ruta.distance_km} km</span><span
+          class='statsbar__lbl'>Distancia</span
+        >
+      </div>
+    </div>
+    <div class='statsbar__divider'></div>
+    <div class='statsbar__item'>
+      <svg
+        width='18'
+        height='18'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'
+        style='color:var(--sage)'
+        ><polyline points='22 7 13.5 15.5 8.5 10.5 2 17'></polyline><polyline
+          points='16 7 22 7 22 13'></polyline></svg
+      >
+      <div>
+        <span class='statsbar__val'
+          >{ruta.elevation_gain.toLocaleString('es-ES')} m</span
+        ><span class='statsbar__lbl'>Desnivel +</span>
+      </div>
+    </div>
+    <div class='statsbar__divider'></div>
+    <div class='statsbar__item'>
+      <svg
+        width='18'
+        height='18'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'
+        style='color:var(--terra)'
+        ><polyline points='22 17 13.5 8.5 8.5 13.5 2 7'></polyline><polyline
+          points='16 17 22 17 22 11'></polyline></svg
+      >
+      <div>
+        <span class='statsbar__val'
+          >{ruta.elevation_loss.toLocaleString('es-ES')} m</span
+        ><span class='statsbar__lbl'>Desnivel −</span>
+      </div>
+    </div>
+    <div class='statsbar__divider'></div>
+    <div class='statsbar__item'>
+      <svg
+        width='18'
+        height='18'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'
+        style='color:var(--blue)'
+        ><path d='m8 3 4 8 5-5 5 15H2L8 3z'></path></svg
+      >
+      <div>
+        <span class='statsbar__val'
+          >{ruta.max_elevation.toLocaleString('es-ES')} m</span
+        ><span class='statsbar__lbl'>Altitud Máx.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class='layout'>
+    <!-- Left column -->
+    <div class='layout__main'>
+      <!-- Metrics grid -->
+      <section class='card'>
+        <div class='card__header'>
+          <h2 class='card__title'>Características Técnicas</h2>
+        </div>
+        <div class='metrics'>
+          {
+            metrics.map(({ label, value, color: c }) => (
+              <div class='metric'>
+                <span class='metric__label'>{label}</span>
+                <span class:list={['metric__value', `metric__value--${c}`]}>
+                  {value}
+                </span>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- Elevation chart -->
+      <section class='card'>
+        <ElevationChart profile={ruta.elevationProfile} />
+      </section>
+
+      <!-- Description -->
+      <section class='card'>
+        <div class='card__header'>
+          <h2 class='card__title'>Descripción de la Ruta</h2>
+          <span class='card__badge-ai'>
+            <svg
+              width='12'
+              height='12'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              aria-hidden='true'
+              ><path
+                d='m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z'
+              ></path></svg
+            >
+            Generado por IA
+          </span>
+        </div>
+        <article set:html={description} />
+      </section>
+    </div>
+
+    <!-- Right sidebar -->
+    <aside class='layout__side'>
+      <!-- Difficulty -->
+      <div class='card'>
+        <h3 class='card__title'>Dificultad</h3>
+        <div
+          class='diff__badge'
+          style={`background: ${color.bg}; color: ${color.text};`}>
+          {ruta.difficulty.charAt(0).toUpperCase() + ruta.difficulty.slice(1)}
+        </div>
+        <div class='diff__scale'>
+          {
+            (
+              [
+                'sendero fácil',
+                'moderado',
+                'difícil',
+                'alta montaña',
+                'alpinismo ligero',
+                'alpinismo técnico'
+              ] as const
+            ).map((_d, i, arr) => (
+              <div
+                class='diff__bar'
+                style={`background: ${arr.indexOf(ruta.difficulty) >= i ? color.text : 'var(--border)'};`}
+              />
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- File info -->
+      <div class='card'>
+        <h3 class='card__title'>Archivo</h3>
+        <div class='info-row__divider'></div>
+        <div class='info-row'>
+          {
+            ruta.wikiloc_id ? (
+              <a
+                class='info-row__value info-row__link'
+                href={`https://www.wikiloc.com/trails/${ruta.wikiloc_id}`}
+                target='_blank'
+                rel='noopener noreferrer'>
+                Wikiloc
+                <svg
+                  width='11'
+                  height='11'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  stroke-width='2'
+                  stroke-linecap='round'
+                  stroke-linejoin='round'
+                  aria-hidden='true'>
+                  <>
+                    <path d='M15 3h6v6' />
+                    <path d='M10 14 21 3' />
+                    <path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' />
+                  </>
+                </svg>
+              </a>
+            ) : (
+              <span class='info-row__value' style='color: var(--text-3)'>
+                —
+              </span>
+            )
+          }
+        </div>
+        <div class='info-row__divider'></div>
+        <div class='info-row'>
+          <span class='info-row__label'>Fecha</span>
+          <span class='info-row__value'>{dateFormatted}</span>
+        </div>
+      </div>
+
+      <!-- Back link -->
+      <a href='/' class='back-link'>
+        <svg
+          width='14'
+          height='14'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          aria-hidden='true'><path d='m15 18-6-6 6-6'></path></svg
+        >
+        Volver a todas las rutas
+      </a>
+    </aside>
+  </div>
+
+  <footer class='footer'>
+    <p>
+      © {new Date().getFullYear()} Escalistas
+    </p>
+  </footer>
+</Layout>
+
+<style>
+  /* Hero */
+  .hero {
+    position: relative;
+    height: 380px;
+    overflow: hidden;
+  }
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, #00000020, #000000bb);
+  }
+  .hero__content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 0 48px 44px;
+  }
+  .hero__breadcrumb {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff99;
+  }
+  .hero__breadcrumb a {
+    color: #ffffff99;
+  }
+  .hero__breadcrumb a:hover {
+    color: #fff;
+  }
+  .hero__title {
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 500;
+    letter-spacing: -1.5px;
+    color: #fff;
+    line-height: 1.1;
+  }
+  .hero__row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .hero__badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .hero__stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffffcc;
+  }
+  .hero__tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .hero__tag {
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #ffffff18;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffffffcc;
+    backdrop-filter: blur(4px);
+  }
+  .hero__stat svg {
+    color: #ffffff99;
+    flex-shrink: 0;
+  }
+
+  /* Stats bar */
+  .statsbar {
+    display: flex;
+    align-items: center;
+    padding: 0 48px;
+    height: 72px;
+    background: var(--card);
+    box-shadow: 0 2px 8px #0000000a;
+    gap: 0;
+  }
+  .statsbar__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 28px;
+  }
+  .statsbar__item div {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .statsbar__val {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-1);
+    letter-spacing: -0.5px;
+  }
+  .statsbar__lbl {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+  .statsbar__divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 48px;
+    align-items: start;
+  }
+  .layout__main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .layout__side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 80px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 30px #00000006;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card__title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-1);
+  }
+  .card__badge-ai {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--sage) 15%, transparent);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sage);
+  }
+  .card__badge-ai svg {
+    flex-shrink: 0;
+  }
+
+  /* Metrics */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .metric {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .metric__label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+  .metric__value {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .metric__value--text-1 {
+    color: var(--text-1);
+  }
+  .metric__value--sage {
+    color: var(--sage);
+  }
+  .metric__value--terra {
+    color: var(--terra);
+  }
+  .metric__value--blue {
+    color: var(--blue);
+  }
+  .metric__value--lavender {
+    color: var(--lavender);
+  }
+
+  /* Description */
+  .description {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-2);
+  }
+  .description h1,
+  .description h2,
+  .description h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 1.2em 0 0.4em;
+    line-height: 1.2;
+  }
+  .description h1 {
+    font-size: 22px;
+  }
+  .description h2 {
+    font-size: 18px;
+  }
+  .description h3 {
+    font-size: 15px;
+  }
+  .description p {
+    margin: 0.5em 0;
+  }
+  .description strong {
+    color: var(--text-1);
+    font-weight: 600;
+  }
+  .description em {
+    font-style: italic;
+  }
+  .description blockquote {
+    border-left: 3px solid var(--sage);
+    padding: 8px 14px;
+    margin: 12px 0;
+    background: color-mix(in srgb, var(--sage) 8%, transparent);
+    border-radius: 0 6px 6px 0;
+    color: var(--text-2);
+    font-style: italic;
+  }
+  .description blockquote p {
+    margin: 0;
+  }
+  .description ul {
+    padding-left: 1.4em;
+    margin: 0.5em 0;
+  }
+  .description li {
+    margin: 0.25em 0;
+  }
+  .description code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--sage);
+  }
+  .description hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.2em 0;
+  }
+
+  /* Difficulty */
+  .diff__badge {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .diff__scale {
+    display: flex;
+    gap: 4px;
+  }
+  .diff__bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  /* Info rows */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .info-row__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+  .info-row__value {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-1);
+  }
+  .info-row__value--mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .info-row__link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--blue);
+    font-weight: 600;
+    font-size: 13px;
+    transition: opacity 0.15s;
+  }
+  .info-row__link:hover {
+    opacity: 0.75;
+  }
+  .info-row__divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Back link */
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--card);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    box-shadow: 0 4px 24px #00000008;
+    transition: color 0.15s;
+  }
+  .back-link:hover {
+    color: var(--sage);
+  }
+
+  /* Footer */
+  .footer {
+    padding: 24px 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-3);
+    border-top: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .metrics {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    .layout {
+      grid-template-columns: 1fr;
+      padding: 20px;
+    }
+    .layout__side {
+      position: static;
+    }
+    .statsbar {
+      padding: 0 20px;
+      overflow-x: auto;
+    }
+    .hero__content {
+      padding: 0 20px 32px;
+    }
+    .metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

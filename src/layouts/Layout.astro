@@ -1,0 +1,50 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = 'Escalistas', description = 'Rutas de montaña' } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} · Escalistas</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F7F6F3;
+    --card:      #FFFFFF;
+    --border:    #F0EFEC;
+    --text-1:    #2D2D2D;
+    --text-2:    #6B6B6B;
+    --text-3:    #8E8E93;
+    --sage:      #7C9070;
+    --sage-dark: #4A5D43;
+    --terra:     #D4845E;
+    --blue:      #5B9BD5;
+    --lavender:  #9B8AA8;
+    --font-serif: 'Fraunces', Georgia, serif;
+    --font-sans:  'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-mono:  'Space Mono', monospace;
+  }
+
+  html { font-size: 16px; }
+  body { background: var(--bg); font-family: var(--font-sans); color: var(--text-1); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; }
+</style>

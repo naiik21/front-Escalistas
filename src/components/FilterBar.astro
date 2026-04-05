@@ -1,0 +1,73 @@
+---
+interface Props {
+  categories: string[]
+}
+const { categories } = Astro.props
+const difficulties = ['sendero fácil', 'moderado', 'difícil', 'alta montaña', 'alpinismo ligero', 'alpinismo técnico']
+---
+<div class="filters">
+  <span class="filters__label">Dificultad</span>
+  <div class="filters__group">
+    {difficulties.map((d) => (
+      <button class="filters__pill" data-filter-diff={d}>
+        {d.charAt(0).toUpperCase() + d.slice(1)}
+      </button>
+    ))}
+  </div>
+
+  {categories.length > 0 && (
+    <>
+      <div class="filters__divider"></div>
+      <span class="filters__label">Categoría</span>
+      <div class="filters__group">
+        {categories.map((c) => (
+          <button class="filters__pill" data-filter-cat={c}>
+            {c}
+          </button>
+        ))}
+      </div>
+    </>
+  )}
+</div>
+
+<style>
+  .filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 48px;
+    background: var(--card);
+    box-shadow: 0 2px 8px #0000000A;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: wrap;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+
+  .filters__label { font-size: 12px; font-weight: 500; color: var(--text-3); flex-shrink: 0; }
+
+  .filters__group { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .filters__divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+  .filters__pill {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: none;
+    background: var(--bg);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .filters__pill:hover { background: color-mix(in srgb, var(--sage) 12%, transparent); color: var(--sage); }
+  .filters__pill--active { background: var(--text-1); color: #FFFFFF; }
+
+  @media (max-width: 640px) {
+    .filters { padding: 12px 20px; }
+    .filters__divider { display: none; }
+  }
+</style>

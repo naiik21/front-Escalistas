@@ -1,0 +1,175 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Navbar from '../components/Navbar.astro'
+import HeroRoute from '../components/HeroRoute.astro'
+import FilterBar from '../components/FilterBar.astro'
+import RouteCard from '../components/RouteCard.astro'
+import { rutas, getLatestRuta } from '../data/rutas'
+
+const latest = getLatestRuta()
+const rest = rutas.filter((r) => r.slug !== latest.slug)
+const categories = [...new Set(rutas.flatMap((r) => r.categories))].sort()
+---
+
+<Layout
+  title='Inicio'
+  description='Rutas de montaña — blog personal de ascensiones y senderos'>
+  <Navbar activePage='home' />
+  <HeroRoute ruta={latest} />
+  <FilterBar categories={categories} />
+
+  <main class='home'>
+    <div class='home__grid'>
+      {
+        rest.map((ruta) => (
+          <div
+            class='card-wrapper'
+            data-diff={ruta.difficulty}
+            data-cats={ruta.categories.join(',')}>
+            <RouteCard ruta={ruta} />
+          </div>
+        ))
+      }
+    </div>
+  </main>
+
+  <footer class='footer'>
+    <div class='footer__left'>
+      <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        aria-hidden='true'
+        style='color: #7C9070'>
+        <path d='m8 3 4 8 5-5 5 15H2L8 3z'></path>
+      </svg>
+      <strong>Escalistas</strong>
+    </div>
+    <p class='footer__copy'>
+      © {new Date().getFullYear()} Escalistas
+    </p>
+  </footer>
+  <script>
+    const cards = () => document.querySelectorAll<HTMLElement>('.card-wrapper')
+    let activeDiff = ''
+    let activeCat = ''
+
+    function applyFilters() {
+      cards().forEach((card) => {
+        const diff = card.dataset.diff ?? ''
+        const cats = (card.dataset.cats ?? '').split(',')
+        const matchDiff = !activeDiff || diff === activeDiff
+        const matchCat = !activeCat || cats.includes(activeCat)
+        card.style.display = matchDiff && matchCat ? '' : 'none'
+      })
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
+        '[data-filter-diff],[data-filter-cat]'
+      )
+      if (!btn) return
+
+      if (btn.dataset.filterDiff !== undefined) {
+        const val = btn.dataset.filterDiff!
+        activeDiff = activeDiff === val ? '' : val
+        document
+          .querySelectorAll('[data-filter-diff]')
+          .forEach((b) =>
+            b.classList.toggle(
+              'filters__pill--active',
+              (b as HTMLElement).dataset.filterDiff === activeDiff &&
+                activeDiff !== ''
+            )
+          )
+      } else {
+        const val = btn.dataset.filterCat!
+        activeCat = activeCat === val ? '' : val
+        document
+          .querySelectorAll('[data-filter-cat]')
+          .forEach((b) =>
+            b.classList.toggle(
+              'filters__pill--active',
+              (b as HTMLElement).dataset.filterCat === activeCat &&
+                activeCat !== ''
+            )
+          )
+      }
+
+      applyFilters()
+    })
+  </script>
+</Layout>
+
+<style>
+  .home {
+    max-width: 1344px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }
+
+  .home__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 48px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-3);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-2);
+  }
+  .footer__left strong {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--text-1);
+  }
+
+  .footer__rss {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--sage);
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .footer__rss:hover {
+    opacity: 0.75;
+  }
+
+  @media (max-width: 1024px) {
+    .home__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .home {
+      padding: 24px 20px;
+    }
+    .home__grid {
+      grid-template-columns: 1fr;
+    }
+    .footer {
+      padding: 20px;
+    }
+  }
+</style>

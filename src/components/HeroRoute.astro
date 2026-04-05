@@ -1,0 +1,152 @@
+---
+import type { Ruta } from '../data/rutas';
+import { difficultyColor } from '../data/rutas';
+
+interface Props {
+  ruta: Ruta;
+}
+const { ruta } = Astro.props;
+
+const color = difficultyColor[ruta.difficulty] ?? { bg: '#FFFFFF15', text: '#FFFFFF' };
+const dateFormatted = new Date(ruta.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<section class="hero">
+  <div class="hero__bg" style={`background-image: url('${ruta.image}')`}></div>
+  <div class="hero__overlay"></div>
+
+  <div class="hero__content">
+    <div class="hero__meta">
+      <span class="hero__meta-dot"></span>
+      <span>Última ruta · {dateFormatted}</span>
+    </div>
+
+    <h1 class="hero__title">{ruta.title}</h1>
+
+    <div class="hero__row">
+      <span class="hero__badge" style={`background: ${color.bg}; color: ${color.text};`}>
+        {ruta.difficulty.charAt(0).toUpperCase() + ruta.difficulty.slice(1)}
+      </span>
+
+      <span class="hero__stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14l4 4-4 4"/></svg>
+        {ruta.distance_km} km
+      </span>
+
+      <span class="hero__stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        {ruta.elevation_gain.toLocaleString('es-ES')} m
+      </span>
+
+      <span class="hero__stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        {ruta.zone}
+      </span>
+
+      <a href={`/rutas/${ruta.slug}`} class="hero__btn">
+        Ver ruta completa
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    height: 420px;
+    overflow: hidden;
+  }
+
+  .hero__bg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.03);
+    transition: transform 6s ease;
+  }
+  .hero:hover .hero__bg { transform: scale(1); }
+
+  .hero__overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, #00000022 0%, #000000BB 100%);
+  }
+
+  .hero__content {
+    position: absolute; inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 0 48px 48px;
+  }
+
+  .hero__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #FFFFFFAA;
+  }
+  .hero__meta-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--sage);
+    flex-shrink: 0;
+  }
+
+  .hero__title {
+    font-family: var(--font-serif);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: #FFFFFF;
+  }
+
+  .hero__row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hero__badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .hero__stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #FFFFFFCC;
+  }
+  .hero__stat svg { color: #FFFFFFAA; flex-shrink: 0; }
+
+  .hero__btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #FFFFFF20;
+    font-size: 12px;
+    font-weight: 600;
+    color: #FFFFFF;
+    transition: background 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .hero__btn:hover { background: #FFFFFF35; }
+
+  @media (max-width: 640px) {
+    .hero__content { padding: 0 20px 32px; }
+    .hero__btn { display: none; }
+  }
+</style>

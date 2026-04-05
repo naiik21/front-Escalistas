@@ -1,0 +1,153 @@
+---
+interface Props {
+  profile: number[]; // array of elevation values
+  width?: number;
+  height?: number;
+}
+const { profile, width = 800, height = 160 } = Astro.props;
+
+const min = Math.min(...profile);
+const max = Math.max(...profile);
+const range = max - min || 1;
+const pad = { top: 12, right: 8, bottom: 28, left: 52 };
+const innerW = width - pad.left - pad.right;
+const innerH = height - pad.top - pad.bottom;
+
+// Normalise to SVG coords (Y is inverted)
+const points = profile.map((v, i) => {
+  const x = pad.left + (i / (profile.length - 1)) * innerW;
+  const y = pad.top + innerH - ((v - min) / range) * innerH;
+  return [x, y] as [number, number];
+});
+
+// Build smooth polyline path
+const pathD = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(' ');
+// Close to bottom for fill
+const fillD = `${pathD} L${points.at(-1)![0]},${pad.top + innerH} L${points[0][0]},${pad.top + innerH} Z`;
+
+// Y-axis labels (4 ticks)
+const yTicks = [0, 0.33, 0.67, 1].map((t) => ({
+  value: Math.round(min + t * range),
+  y: pad.top + innerH - t * innerH,
+}));
+
+// X-axis labels (5 ticks)
+const totalKm = profile.length; // rough
+const xTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+  label: `${Math.round(t * (profile.length - 1))} km`,
+  x: pad.left + t * innerW,
+}));
+
+// Slope threshold line at 30° — highlight bars above ~slope proxy
+// (simplified: colour bars by relative steepness between consecutive points)
+const slopeThreshold = innerH * 0.35; // relative height jump
+---
+<div class="chart">
+  <div class="chart__header">
+    <span class="chart__title">Perfil de Desnivel</span>
+    <div class="chart__legend">
+      <span class="chart__legend-item chart__legend-item--sage">
+        <span class="chart__legend-dot"></span> Elevación
+      </span>
+      <span class="chart__legend-item chart__legend-item--terra">
+        <span class="chart__legend-dot"></span> Pendiente &gt;30°
+      </span>
+    </div>
+  </div>
+
+  <svg
+    viewBox={`0 0 ${width} ${height}`}
+    width="100%"
+    preserveAspectRatio="none"
+    class="chart__svg"
+    aria-label="Perfil de desnivel"
+    role="img"
+  >
+    <!-- Grid lines -->
+    {yTicks.map(({ y }) => (
+      <line x1={pad.left} y1={y} x2={pad.left + innerW} y2={y} stroke="#F0EFEC" stroke-width="1" />
+    ))}
+
+    <!-- Fill gradient -->
+    <defs>
+      <linearGradient id="elev-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7C9070" stop-opacity="0.25" />
+        <stop offset="100%" stop-color="#7C9070" stop-opacity="0.03" />
+      </linearGradient>
+    </defs>
+    <path d={fillD} fill="url(#elev-fill)" />
+
+    <!-- Slope highlights (segments above threshold drawn in terra) -->
+    {points.slice(1).map(([x2, y2], i) => {
+      const [x1, y1] = points[i];
+      const isStep = Math.abs(y1 - y2) > slopeThreshold;
+      if (!isStep) return null;
+      const segFill = `M${x1},${pad.top + innerH} L${x1},${y1} L${x2},${y2} L${x2},${pad.top + innerH} Z`;
+      return <path d={segFill} fill="#D4845E40" />;
+    })}
+
+    <!-- Main line -->
+    <path d={pathD} fill="none" stroke="#7C9070" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+
+    <!-- Data points -->
+    {points.map(([x, y]) => (
+      <circle cx={x} cy={y} r="2.5" fill="#7C9070" />
+    ))}
+
+    <!-- Y-axis labels -->
+    {yTicks.map(({ value, y }) => (
+      <text x={pad.left - 6} y={y + 4} text-anchor="end" font-family="Space Mono, monospace" font-size="9" fill="#8E8E93">
+        {value.toLocaleString('es-ES')}m
+      </text>
+    ))}
+
+    <!-- X-axis labels -->
+    {xTicks.map(({ label, x }) => (
+      <text x={x} y={height - 4} text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#8E8E93">
+        {label}
+      </text>
+    ))}
+
+    <!-- Y axis line -->
+    <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + innerH} stroke="#F0EFEC" stroke-width="1" />
+    <!-- X axis line -->
+    <line x1={pad.left} y1={pad.top + innerH} x2={pad.left + innerW} y2={pad.top + innerH} stroke="#F0EFEC" stroke-width="1" />
+  </svg>
+</div>
+
+<style>
+  .chart { display: flex; flex-direction: column; gap: 12px; }
+
+  .chart__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chart__title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-1);
+  }
+
+  .chart__legend { display: flex; gap: 16px; }
+
+  .chart__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+
+  .chart__legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .chart__legend-item--sage .chart__legend-dot { background: var(--sage); }
+  .chart__legend-item--terra .chart__legend-dot { background: var(--terra); }
+
+  .chart__svg { display: block; width: 100%; overflow: visible; }
+</style>
